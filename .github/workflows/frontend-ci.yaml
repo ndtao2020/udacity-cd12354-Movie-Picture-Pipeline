@@ -1,7 +1,7 @@
 name: Node.js CI
 
 on:
-  pull_requests:
+  pull_request:
     branches:
       - main
 
@@ -24,11 +24,8 @@ jobs:
         cache: 'npm'
         cache-dependency-path: './starter/frontend/package-lock.json'
     - name: Install dependencies
-      # working-directory: ./starter/frontend
       run: npm ci
-    - name: LINT JOB
-      # working-directory: ./starter/frontend
+    - name: Running linter
       run: npm run lint
     - name: Run tests
-      # working-directory: ./starter/frontend
       run: npm run test
