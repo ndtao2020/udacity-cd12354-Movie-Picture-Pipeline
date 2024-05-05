@@ -1,0 +1,33 @@
+name: Node.js CI
+
+on:
+  pull_requests:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
+    strategy:
+      matrix:
+        node-version: ['16.x', '18.x']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - name: Install dependencies
+      # working-directory: ./starter/frontend
+      run: npm ci
+    - name: LINT JOB
+      # working-directory: ./starter/frontend
+      run: npm run lint
+    - name: Run tests
+      # working-directory: ./starter/frontend
+      run: npm run test
