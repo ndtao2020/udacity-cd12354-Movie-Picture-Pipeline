@@ -79,20 +79,9 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_IAM_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-    # Install Kubectl cli
-    - name: Install Kubectl cli
-      run: |
-        export os="linux/amd64"
-        curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
-        sudo chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version --client
     # Updating a kubeconfig file for an Amazon EKS cluster
     - name: Updating a kubeconfig file
       env:
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_IAM_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
         aws sts get-caller-identity
