@@ -91,7 +91,7 @@ jobs:
     - name: Install Kubectl cli
       run: |
         export os="linux/amd64"
-        sudo curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
+        curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
         sudo chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
         kubectl version --client
@@ -103,9 +103,9 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
-        sudo aws sts get-caller-identity
-        sudo aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
-        sudo kubectl config current-context
+        aws sts get-caller-identity
+        aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
+        kubectl config current-context
     # # Install Kustomize cli
     # - name: Install Kustomize cli
     #   run: |
@@ -115,9 +115,9 @@ jobs:
     - name: Set the image tag to the newer version
       run: |
         cd ./starter/frontend/k8s
-        sudo kustomize edit set image frontend=${{ needs.build.outputs.image }}
+        kustomize edit set image frontend=${{ needs.build.outputs.image }}
     # Apply the manifests to the cluster
     - name: Apply the manifests to the cluster
       run: |
         cd ./starter/frontend/k8s
-        sudo kustomize build | kubectl apply -f -
+        kustomize build | kubectl apply -f -
