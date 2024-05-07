@@ -89,10 +89,13 @@ jobs:
         kubectl version --client
     # Updating a kubeconfig file for an Amazon EKS cluster
     - name: Updating a kubeconfig file
+      env:
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
-        cd setup
-        chmod +x init.sh
-        sudo ./init.sh
+        aws sts get-caller-identity
+        aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME
+        kubectl get svc
     # Install Kustomize cli
     - name: Install Kustomize cli
       run: |

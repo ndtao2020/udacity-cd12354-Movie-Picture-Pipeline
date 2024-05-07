@@ -71,7 +71,7 @@ jobs:
         ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY_WEB }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build --build-arg=REACT_APP_MOVIE_API_URL=$APP_MOVIE_API_URL -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest --build-arg=REACT_APP_MOVIE_API_URL=${{ vars.APP_MOVIE_API_URL }} .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
@@ -98,10 +98,13 @@ jobs:
         kubectl version --client
     # Updating a kubeconfig file for an Amazon EKS cluster
     - name: Updating a kubeconfig file
+      env:
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
-        cd setup
-        chmod +x init.sh
-        sudo ./init.sh
+        aws sts get-caller-identity
+        aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME
+        kubectl get svc
     # Install Kustomize cli
     - name: Install Kustomize cli
       run: |
