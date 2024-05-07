@@ -83,7 +83,7 @@ jobs:
     - name: Generate kubeconfig
       env:
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
-      run: echo "EKS_CREDS=$(aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME --dry-run | base64) >> $GITHUB_ENV
+      run: echo "EKS_CREDS=$(aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME --dry-run | base64)" >> $GITHUB_ENV
     - uses: tale/kubectl-action@v1
       with:
         base64-kube-config: ${{ env.EKS_CREDS }}
