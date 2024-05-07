@@ -35,11 +35,14 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: test  # Wait for build job to complete
+    needs: test  # Wait for test job to complete
     defaults:
       run:
         shell: bash
         working-directory: ./starter/frontend
+    # Expose step outputs as job outputs
+    outputs:
+      image: ${{ steps.build-push-image.outputs.image }}
     steps:
     - uses: actions/checkout@v4
     # Configure AWS credential environment variables
@@ -55,11 +58,53 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     # Build and push a Docker image
     - name: Build, tag, and push the image to Amazon ECR
+      id: build-push-image
       env:
+        APP_MOVIE_API_URL: ${{ vars.APP_MOVIE_API_URL }}
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY_WEB }}
         IMAGE_TAG: ${{ github.sha }}
-      # docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg REACT_APP_MOVIE_API_URL=<api_url> .
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=$APP_MOVIE_API_URL -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build  # Wait for build job to complete
+    steps:
+    - uses: actions/checkout@v4
+    # Configure AWS credential environment variables
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_IAM_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    # Install Kubectl cli
+    - name: Install Kubectl cli
+      run: |
+        export os="linux/amd64"
+        sudo curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
+        sudo chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
+    # Updating a kubeconfig file for an Amazon EKS cluster
+    - name: Updating a kubeconfig file
+      run: sudo ./setup/init.sh
+    # Install Kustomize cli
+    - name: Install Kustomize cli
+      run: |
+        sudo curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+        kustomize version
+    # Set the image tag to the newer version
+    - name: Set the image tag to the newer version
+      run: |
+        cd ./starter/frontend/k8s
+        kustomize edit set image frontend=${{ needs.build.outputs.image }}
+    # Apply the manifests to the cluster
+    - name: Apply the manifests to the cluster
+      run: |
+        cd ./starter/frontend/k8s
+        kustomize build | kubectl apply -f -
