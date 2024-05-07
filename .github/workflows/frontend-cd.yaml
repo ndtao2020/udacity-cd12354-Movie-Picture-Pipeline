@@ -2,6 +2,10 @@ name: Node.js CD
 
 on:
   workflow_dispatch:  # Allow manual triggering
+  workflow_run:
+    workflows: [Python CD]
+    types: [completed]
+    branches: [main]
   push:
     branches:
       - main
