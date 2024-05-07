@@ -95,18 +95,16 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
-        aws sts get-caller-identity
-        aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
-        kubectl config current-context
-        kubectl config view --minify
-        kubectl get svc
+        sudo aws sts get-caller-identity
+        sudo aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
+        sudo kubectl config current-context
     # Set the image tag to the newer version
     - name: Set the image tag to the newer version
       run: |
         cd ./starter/backend/k8s
-        kustomize edit set image backend=${{ needs.build.outputs.image }}
+        sudo kustomize edit set image backend=${{ needs.build.outputs.image }}
     # Apply the manifests to the cluster
     - name: Apply the manifests to the cluster
       run: |
         cd ./starter/backend/k8s
-        kustomize build | kubectl apply -f -
+        sudo kustomize build | kubectl apply -f -
