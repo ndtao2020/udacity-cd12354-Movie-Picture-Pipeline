@@ -86,21 +86,20 @@ jobs:
         sudo curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
         sudo chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version --client
+        kubectl version
     # Updating a kubeconfig file for an Amazon EKS cluster
     - name: Updating a kubeconfig file
       env:
         AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_IAM_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
         aws sts get-caller-identity
-        aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME
+        aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
+        kubectl config current-context
+        kubectl config view --minify
         kubectl get svc
-    # Install Kustomize cli
-    - name: Install Kustomize cli
-      run: |
-        sudo curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-        kustomize version
     # Set the image tag to the newer version
     - name: Set the image tag to the newer version
       run: |
