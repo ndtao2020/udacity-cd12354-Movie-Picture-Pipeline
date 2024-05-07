@@ -80,13 +80,18 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
     # Updating a kubeconfig file for an Amazon EKS cluster
-    - name: Updating a kubeconfig file
+    - name: Generate kubeconfig
       env:
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
+      run: echo "EKS_CREDS=$(aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME --dry-run | base64) >> $GITHUB_ENV
+    - uses: tale/kubectl-action@v1
+      with:
+        base64-kube-config: ${{ env.EKS_CREDS }}
+    - name: Validating a kubeconfig file
       run: |
         aws sts get-caller-identity
-        aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
         kubectl config current-context
+        kubectl get svc
     # Set the image tag to the newer version
     - name: Set the image tag to the newer version
       run: |

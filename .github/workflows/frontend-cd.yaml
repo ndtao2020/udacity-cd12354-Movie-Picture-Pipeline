@@ -80,14 +80,6 @@ jobs:
     needs: build  # Wait for build job to complete
     steps:
     - uses: actions/checkout@v4
-    # Install Kubectl cli
-    - name: Install Kubectl cli
-      run: |
-        export os="linux/amd64"
-        curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
-        sudo chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version --client
     # Configure AWS credential environment variables
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -96,25 +88,25 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
     # Updating a kubeconfig file for an Amazon EKS cluster
-    - name: Updating a kubeconfig file
+    - name: Generate kubeconfig
       env:
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
+      run: echo "EKS_CREDS=$(aws eks update-kubeconfig --region $AWS_REGION --name $AWS_EKS_CLUSTER_NAME --dry-run | base64) >> $GITHUB_ENV
+    - uses: tale/kubectl-action@v1
+      with:
+        base64-kube-config: ${{ env.EKS_CREDS }}
+    - name: Validating a kubeconfig file
       run: |
         aws sts get-caller-identity
-        aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER_NAME
         kubectl config current-context
-    # # Install Kustomize cli
-    # - name: Install Kustomize cli
-    #   run: |
-    #     sudo curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-    #     kustomize version
+        kubectl get svc
     # Set the image tag to the newer version
     - name: Set the image tag to the newer version
       run: |
-        cd ./starter/frontend/k8s
-        kustomize edit set image frontend=${{ needs.build.outputs.image }}
+        cd ./starter/backend/k8s
+        kustomize edit set image backend=${{ needs.build.outputs.image }}
     # Apply the manifests to the cluster
     - name: Apply the manifests to the cluster
       run: |
-        cd ./starter/frontend/k8s
+        cd ./starter/backend/k8s
         kustomize build | kubectl apply -f -
