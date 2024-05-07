@@ -4,8 +4,10 @@ on:
   workflow_dispatch:  # Allow manual triggering
   workflow_run:
     workflows: [Python CD]
-    types: [completed]
     branches: [main]
+    types:
+      - completed
+      - requested
   push:
     branches:
       - main
@@ -98,7 +100,8 @@ jobs:
     - name: Updating a kubeconfig file
       run: |
         cd setup
-        sudo init.sh
+        chmod +x init.sh
+        sudo ./init.sh
     # Install Kustomize cli
     - name: Install Kustomize cli
       run: |

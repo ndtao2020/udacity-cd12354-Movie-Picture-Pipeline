@@ -91,7 +91,8 @@ jobs:
     - name: Updating a kubeconfig file
       run: |
         cd setup
-        sudo init.sh
+        chmod +x init.sh
+        sudo ./init.sh
     # Install Kustomize cli
     - name: Install Kustomize cli
       run: |
