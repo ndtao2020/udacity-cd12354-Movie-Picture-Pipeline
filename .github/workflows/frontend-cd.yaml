@@ -6,7 +6,7 @@ on:
     workflows: [Python CD]
     branches: [main]
     types:
-      - requested
+      - completed
   push:
     branches:
       - main
@@ -94,7 +94,7 @@ jobs:
         sudo curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
         sudo chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version
+        kubectl version --client
     # Updating a kubeconfig file for an Amazon EKS cluster
     - name: Updating a kubeconfig file
       env:

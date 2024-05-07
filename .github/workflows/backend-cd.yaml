@@ -86,13 +86,13 @@ jobs:
         sudo curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/$os/kubectl"
         sudo chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version
+        kubectl version --client
     # Updating a kubeconfig file for an Amazon EKS cluster
     - name: Updating a kubeconfig file
       env:
         AWS_REGION: ${{ secrets.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_IAM_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: 
         AWS_EKS_CLUSTER_NAME: ${{ vars.AWS_EKS_CLUSTER_NAME }}
       run: |
         aws sts get-caller-identity
