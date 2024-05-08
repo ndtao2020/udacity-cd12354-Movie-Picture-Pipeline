@@ -10,7 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,5 +32,40 @@ jobs:
       run: npm ci
     - name: Running linter
       run: npm run lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
+    strategy:
+      matrix:
+        node-version: ['16.x', '18.x', '20.x']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: './starter/frontend/package-lock.json'
+    - name: Install dependencies
+      run: npm ci
     - name: Run tests
       run: npm run test
+
+  build:
+    name: Build
+    needs: [lint, test]  # This line specifies both lint and test jobs as dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
+    steps:
+    - uses: actions/checkout@v4
+    # Build a Docker image
+    - name: Build image
+      run: docker build -t ${{ vars.AWS_ECR_REPOSITORY_WEB }} --build-arg=REACT_APP_MOVIE_API_URL=${{ vars.APP_MOVIE_API_URL }} .

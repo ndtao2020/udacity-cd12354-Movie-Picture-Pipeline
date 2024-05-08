@@ -61,7 +61,6 @@ jobs:
     # Build and push a Docker image
     - name: Build, tag, and push the image to Amazon ECR
       env:
-        APP_MOVIE_API_URL: ${{ vars.APP_MOVIE_API_URL }}
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY_WEB }}
         IMAGE_TAG: ${{ github.sha }}
