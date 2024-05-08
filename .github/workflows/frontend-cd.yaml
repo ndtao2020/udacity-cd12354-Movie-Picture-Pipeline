@@ -44,7 +44,7 @@ jobs:
         working-directory: ./starter/frontend
     # Expose step outputs as job outputs
     outputs:
-      image: ${{ steps.build-push-image.outputs.repo-image-name }}
+      repo-image-name: ${{ steps.build-push-image.outputs.repo-image-name }}
     steps:
     - uses: actions/checkout@v4
     # Configure AWS credential environment variables
