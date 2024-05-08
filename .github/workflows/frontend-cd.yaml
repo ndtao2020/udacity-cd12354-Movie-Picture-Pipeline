@@ -99,7 +99,7 @@ jobs:
     - name: Apply the manifests to the cluster
       env:
         ECR_REGISTRY: ${{ steps.login-ecr-deploy.outputs.registry }}
-        ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
+        ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY_WEB }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
         cd ./starter/frontend/k8s
